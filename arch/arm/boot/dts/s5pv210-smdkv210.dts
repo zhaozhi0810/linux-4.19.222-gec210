@@ -1,0 +1,394 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Samsung's S5PV210 SoC device tree source
+ *
+ * Copyright (c) 2013-2014 Samsung Electronics, Co. Ltd.
+ *
+ * Mateusz Krawczuk <m.krawczuk@partner.samsung.com>
+ * Tomasz Figa <t.figa@samsung.com>
+ *
+ * Board device tree source for YIC System SMDV210 board.
+ *
+ * NOTE: This file is completely based on original board file for mach-smdkv210
+ * available in Linux 3.15 and intends to provide equivalent level of hardware
+ * support. Due to lack of hardware, _no_ testing has been performed.
+ */
+
+/dts-v1/;
+#include <dt-bindings/input/input.h>
+#include "s5pv210.dtsi"
+
+/ {
+	model = "YIC System SMDKV210 based on S5PV210";
+	compatible = "yic,smdkv210", "samsung,s5pv210";
+
+	chosen {
+		bootargs = "console=ttySAC0,115200n8 root=/dev/nfs nfsroot=192.168.88.8:/home/zhi/s5pv210/rootfs,v3 rw ip=192.168.88.123:192.168.88.8:192.168.88.1:255.255.255.0::eth0:off rw root wait ignore_loglevel earlyprintk"; //"console=ttySAC0,115200n8 root=/dev/mmcblk0p1 rw rootwait ignore_loglevel earlyprintk";
+	};
+
+	memory@30000000 {
+		device_type = "memory";
+		reg = <0x30000000 0x20000000>;
+	};
+/*
+	ethernet@88000000 {
+		compatible = "davicom,dm9000";
+		reg = <0x88000000 0x2 0x88000004 0x2>;
+		interrupt-parent = <&gph0>;
+		interrupts = <7 4>;
+		local-mac-address = [50 60 de ad be ef];
+		davicom,no-eeprom;
+		clocks = <&clocks CLK_SROMC>;
+		clock-names = "sromc";
+	};
+*/
+	backlight {
+		compatible = "pwm-backlight";
+		pwms = <&pwm 3 5000000 0>;
+		brightness-levels = <0 4 8 16 32 64 128 255>;
+		default-brightness-level = <6>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pwm3_out>;
+	};
+/*
+    srom-cs2@e8000000 {
+		compatible = "simple-bus";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0xe8000000 0x80>;
+		ranges;
+
+		nand: nand@B0E00000 {
+			compatible = "samsung,s5pv210-nand";
+			reg = <0xb0e00000 0x2000>,
+			interrupt-parent = <&vic1>;
+			interrupts = <31>;
+			clocks = <&clocks CLK_SROMC>;
+			clock-names = "nand";
+			#address-cells = <1>;
+			#size-cells = <1>;           
+			status = "okay"; // "disabled";
+		};
+	};
+    */
+};
+
+&xusbxti {
+	clock-frequency = <24000000>;
+};
+
+&xxti {
+	clock-frequency = <24000000>;
+};
+
+
+
+&pinctrl0 {
+	srom_ctl: srom-ctl {
+		samsung,pins = "mp01-1",  "mp01-6",
+			                  "mp01-7", "mp02-2";
+		samsung,pin-function = <EXYNOS_PIN_FUNC_2>;
+		samsung,pin-drv = <EXYNOS5420_PIN_DRV_LV1>;
+	};
+
+	srom_ebi: srom-ebi {
+		samsung,pins = "mp04-0", "mp04-1", "mp04-2", "mp04-3",
+			       "mp04-4", "mp04-5", "mp04-6", "mp04-7",
+			       "mp05-0", "mp05-1", "mp05-2", "mp05-3",
+			       "mp05-4", "mp05-5", "mp05-6", "mp05-7",
+			       "mp06-0", "mp06-1", "mp06-2", "mp06-3",
+			       "mp06-4", "mp06-5", "mp06-6", "mp06-7",
+                                "mp07-0", "mp07-1", "mp07-2", "mp07-3",
+			       "mp07-4", "mp07-5", "mp07-6", "mp07-7";
+		samsung,pin-function = <EXYNOS_PIN_FUNC_2>;
+		samsung,pin-pud = <EXYNOS_PIN_PULL_UP>;
+		samsung,pin-drv = <EXYNOS5420_PIN_DRV_LV1>;
+	};
+    nandc_ctl: nandc-ctl {
+		samsung,pins = "mp01-2", "mp03-0", "mp03-1",
+			       "mp03-2", "mp03-3", "mp03-4";
+		samsung,pin-function = <EXYNOS_PIN_FUNC_2>;
+		samsung,pin-pud = <EXYNOS_PIN_PULL_UP>;
+		samsung,pin-drv = <EXYNOS5420_PIN_DRV_LV1>;
+	};
+    nandc_ebi: nandc-ebi {
+		samsung,pins = 
+			       "mp06-0", "mp06-1", "mp06-2", "mp06-3",
+			       "mp06-4", "mp06-5", "mp06-6", "mp06-7";
+		samsung,pin-function = <EXYNOS_PIN_FUNC_2>;
+		samsung,pin-pud = <EXYNOS_PIN_PULL_UP>;
+		samsung,pin-drv = <EXYNOS5420_PIN_DRV_LV1>;
+	};
+};
+
+
+
+
+
+&sromc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&srom_ctl>, <&srom_ebi>;
+    status = "okay";
+	
+    ethernet@1,0 {
+		compatible = "davicom,dm9000";
+        reg = <1 0 2   /* addr */
+            1 4 2>; /* data */
+		interrupt-parent = <&gph0>;
+		interrupts = <7 4>;
+		local-mac-address = [50 60 de ad be ef];
+		davicom,no-eeprom;
+
+	    reg-io-width = <2>;    //16位模式
+
+		samsung,waitable;
+		samsung,srom-timing = <0 0 1 3 1 0>;
+	};
+    
+	
+};
+
+
+
+&nandc {
+    status = "okay"; // "disabled";
+  
+
+    samsung,nandc-tacls=<1>;
+    samsung,nandc-twrph0=<2>;
+    samsung,nandc-twrph1=<1>;
+
+
+    nand@0 {
+        nand-ecc-step-size = <512>;   //每页2k，每512字节生成ecc，需要16自己存储
+		nand-ecc-strength = <8>;    //最大8bit的纠错位数，每页需要64字节的oob存储
+		nand-ecc-mode = "hw";
+		nand-on-flash-bbt;
+		nand-is-boot-medium;
+        nand-bus-width = <8>;
+
+        pinctrl-names = "default";
+        pinctrl-0 = <&nandc_ctl>, <&nandc_ebi>;
+
+        
+        partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+            partition@0 {
+                label = "u-boot";
+                reg = <0x0 0xc0000 >;
+            };
+
+            partition@c0000 {
+                label = "u-boot-env";
+                reg = <0xc0000  0x40000>;
+            };
+
+            partition@100000 {
+                label = "dtb";
+                reg = <0x100000 0x080000>;   
+            };
+
+            partition@180000 {
+                label = "kernel";
+                reg = <0x180000 0x500000>;
+            };
+
+            partition@680000 {
+                label = "rootfs";
+                reg = <0x680000 0x3f980000 >;   //最大1G
+            };
+        };
+    };
+};
+
+
+
+
+&keypad {
+	linux,input-no-autorepeat;
+	wakeup-source;
+	samsung,keypad-num-rows = <8>;
+	samsung,keypad-num-columns = <8>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&keypad_row0>, <&keypad_row1>, <&keypad_row2>,
+			<&keypad_row3>, <&keypad_row4>, <&keypad_row5>,
+			<&keypad_row6>, <&keypad_row7>,
+			<&keypad_col0>, <&keypad_col1>, <&keypad_col2>,
+			<&keypad_col3>, <&keypad_col4>, <&keypad_col5>,
+			<&keypad_col6>, <&keypad_col7>;
+	status = "okay";
+
+	key_1 {
+		keypad,row = <0>;
+		keypad,column = <3>;
+		linux,code = <KEY_1>;
+	};
+
+	key_2 {
+		keypad,row = <0>;
+		keypad,column = <4>;
+		linux,code = <KEY_2>;
+	};
+
+	key_3 {
+		keypad,row = <0>;
+		keypad,column = <5>;
+		linux,code = <KEY_3>;
+	};
+
+	key_4 {
+		keypad,row = <0>;
+		keypad,column = <6>;
+		linux,code = <KEY_4>;
+	};
+
+	key_5 {
+		keypad,row = <0
+		>;
+		keypad,column = <7>;
+		linux,code = <KEY_5>;
+	};
+
+	key_6 {
+		keypad,row = <1>;
+		keypad,column = <3>;
+		linux,code = <KEY_A>;
+	};
+	key_7 {
+		keypad,row = <1>;
+		keypad,column = <4>;
+		linux,code = <KEY_B>;
+	};
+
+	key_8 {
+		keypad,row = <1>;
+		keypad,column = <5>;
+		linux,code = <KEY_C>;
+	};
+
+	key_9 {
+		keypad,row = <1>;
+		keypad,column = <6>;
+		linux,code = <KEY_D>;
+	};
+
+	key_10 {
+		keypad,row = <1>;
+		keypad,column = <7>;
+		linux,code = <KEY_E>;
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&uart1 {
+	status = "okay";
+};
+
+&uart2 {
+	status = "okay";
+};
+
+&uart3 {
+	status = "okay";
+};
+
+&rtc {
+	status = "okay";
+};
+
+&sdhci0 {
+	bus-width = <4>;
+	pinctrl-0 = <&sd0_clk &sd0_cmd &sd0_cd &sd0_bus1 &sd0_bus4>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&sdhci1 {
+	bus-width = <4>;
+	pinctrl-0 = <&sd1_clk &sd1_cmd &sd1_cd &sd1_bus1 &sd1_bus4>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&sdhci2 {
+	bus-width = <4>;
+	pinctrl-0 = <&sd2_clk &sd2_cmd &sd2_cd &sd2_bus1 &sd2_bus4>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&sdhci3 {
+	bus-width = <4>;
+	pinctrl-0 = <&sd3_clk &sd3_cmd &sd3_cd &sd3_bus1 &sd3_bus4>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&hsotg {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+&usbphy {
+	status = "okay";
+};
+
+&fimd {
+	pinctrl-0 = <&lcd_clk &lcd_data24>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	display-timings {
+		native-mode = <&timing0>;
+
+		timing0: timing {
+			/* 800x480@60Hz */
+			clock-frequency = <24373920>;
+			hactive = <800>;
+			vactive = <480>;
+			hfront-porch = <8>;
+			hback-porch = <13>;
+			hsync-len = <3>;
+			vback-porch = <7>;
+			vfront-porch = <5>;
+			vsync-len = <1>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+			de-active = <1>;
+			pixelclk-active = <1>;
+		};
+	};
+};
+
+&pwm {
+	samsung,pwm-outputs = <3>;
+};
+
+&i2c0 {
+	status = "okay";
+
+	audio-codec@1b {
+		compatible = "wlf,wm8580";
+		reg = <0x1b>;
+	};
+
+	eeprom@50 {
+		compatible = "atmel,24c08";
+		reg = <0x50>;
+	};
+};
+
+&i2s0 {
+	status = "okay";
+};
+
+
+
+
+
